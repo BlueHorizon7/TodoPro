@@ -1,0 +1,60 @@
+// Prisma schema for TodoPro
+// - PostgreSQL (Neon)
+// - Normalized tags (many-to-many)
+// - Enterprise-friendly fields: created/updated timestamps, soft-delete, metadata, sorting
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Todo {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  description String?   @db.Text
+  important   Boolean   @default(false)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  dueDate     DateTime?
+  // Ordering support for drag-and-drop or manual ordering in lists
+  sortOrder   Int?
+
+  // Relations
+  tags Tag[]
+
+  // Operational fields
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
+  metadata   Json?     @db.JsonB
+
+  @@index([completed])
+  @@index([important])
+  @@index([dueDate])
+  @@index([createdAt])
+  @@index([sortOrder])
+}
+
+model Tag {
+  id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String  @unique
+  color String?
+
+  // Relations
+  todos Todo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
