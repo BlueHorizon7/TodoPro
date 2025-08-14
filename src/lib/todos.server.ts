@@ -25,7 +25,7 @@ function toUiTodo(todo: Todo & { tags: Tag[] }): UiTodo {
 }
 
 export async function getTodosServer(params?: { q?: string; completed?: boolean; important?: boolean }) {
-  const { userId } = auth()
+  const { userId } = await auth()
   if (!userId) return []
   const where: Prisma.TodoWhereInput = { archivedAt: null, userId }
   if (params?.q) {

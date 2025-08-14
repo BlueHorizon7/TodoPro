@@ -21,7 +21,7 @@ function toUiTodo(todo: TodoWithTags) {
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
     if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
     const todo = await prisma.todo.findFirst({ where: { id, userId }, include: { tags: true } })
@@ -35,7 +35,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
     if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
     const json = await req.json()
@@ -88,7 +88,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
     if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
     // Soft delete, scoped to owner

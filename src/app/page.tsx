@@ -3,7 +3,7 @@ import { getTodosServer } from "@/lib/todos.server"
 import { auth } from "@clerk/nextjs/server"
 
 export default async function Page() {
-  const { userId } = auth()
+  const { userId } = await auth()
   const initial = await getTodosServer()
   return <ClientPage initial={userId ? initial : []} />
 }
