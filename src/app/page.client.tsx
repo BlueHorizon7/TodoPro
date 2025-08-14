@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useDeferredValue, useCallback } from "react"
-import { AnimatePresence } from "framer-motion"
+import { useEffect, useMemo, useState, useDeferredValue, useCallback, useRef } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { Check } from "lucide-react"
 import {
@@ -13,15 +12,18 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Loader } from "@/components/ui/loader"
 import { SearchBar } from "@/components/global/SearchBar"
 import { AddTodoForm } from "@/components/global/AddTodoForm"
 import { QuickFilters } from "@/components/global/QuickFilters"
 import { TodoCard } from "@/components/global/TodoCard"
+import { SidebarFooter } from "@/components/global/SidebarFooter"
 import dynamic from "next/dynamic"
 import { useUiStore, type Filter } from "@/store/ui"
 import { useTodos, UiTodo } from "@/hooks/use-todos"
-import { parseSearchQuery } from "@/lib/search-parser"
+import { useQueryState, parseAsString, parseAsBoolean } from "nuqs"
 
 const EditTodoModal = dynamic(() => import("@/components/global/edit-todo-model").then((m) => m.EditTodoModal), {
   ssr: false,
@@ -32,18 +34,34 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
   const setFilter = useUiStore((s) => s.setFilter)
   const quickFilter = useUiStore((s) => s.quickFilter)
   const setQuickFilter = useUiStore((s) => s.setQuickFilter)
-  const searchQuery = useUiStore((s) => s.searchQuery)
-  const setSearchQuery = useUiStore((s) => s.setSearchQuery)
+  const [searchQuery, setSearchQuery] = useQueryState("q", parseAsString.withDefault(""))
+  const [, setCompletedParam] = useQueryState("completed", parseAsBoolean)
   const deferredSearch = useDeferredValue(searchQuery)
 
   useEffect(() => {
     document.documentElement.classList.add("dark")
   }, [])
 
-  const { list, create, update, remove, reorder } = useTodos({
-    q: deferredSearch || undefined,
+  // Convert quick filters to search queries
+  const getSearchQuery = () => {
+    let searchQuery = deferredSearch || ""
+    
+    // Add quick filter search terms
+    if (quickFilter === "today") {
+      searchQuery = searchQuery ? `${searchQuery} /date:today` : "/date:today"
+    } else if (quickFilter === "due-soon") {
+      searchQuery = searchQuery ? `${searchQuery} /date:due-soon` : "/date:due-soon"
+    } else if (quickFilter === "important") {
+      searchQuery = searchQuery ? `${searchQuery} @important:true` : "@important:true"
+    }
+    
+    return searchQuery || undefined
+  }
+
+  const { list, create, update, remove } = useTodos({
+    q: getSearchQuery(),
     completed: filter === "completed" ? true : filter === "active" ? false : undefined,
-    important: quickFilter === "important" ? true : undefined,
+    important: undefined,
   })
 
   // hydrate initial data to avoid blank state
@@ -53,6 +71,7 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
   const [editing, setEditing] = useState<{
     id: string
     text: string
+    completed: boolean
     important: boolean
     dueDate?: Date
     tags: string[]
@@ -79,6 +98,7 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
     setEditing({
       id: t.id,
       text: t.text,
+      completed: t.completed,
       important: t.important,
       dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
       tags: t.tags,
@@ -115,31 +135,49 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
   }, [todos, update])
 
   const filteredTodos = useMemo(() => {
-    let filtered = todos
+    // Server-side search is already handled by the API
+    // Only apply client-side quick filters that aren't handled by the server
+    const filtered = todos
+    
+    // Apply quick filters that aren't handled by the server
     switch (quickFilter) {
       case "today": {
-        filtered = filtered.filter((todo) => todo.dueDate && new Date(todo.dueDate).toDateString() === new Date().toDateString())
+        // This is now handled by the server search with /date:today
         break
       }
       case "due-soon": {
-        const threeDaysFromNow = new Date()
-        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
-        filtered = filtered.filter((todo) => todo.dueDate && new Date(todo.dueDate) <= threeDaysFromNow && !todo.completed)
+        // This is now handled by the server search with /date:due-soon
         break
       }
     }
-    if (deferredSearch) {
-      const query = deferredSearch.toLowerCase()
-      filtered = filtered.filter((todo) => todo.text.toLowerCase().includes(query) || todo.tags.some((tag) => tag.toLowerCase().includes(query)))
-    }
+    
     return filtered
-  }, [todos, quickFilter, deferredSearch])
+  }, [todos, quickFilter])
+
+  const viewTodos = useMemo(() => {
+    return filteredTodos.map((todo) => ({
+      id: todo.id,
+      text: todo.text,
+      completed: todo.completed,
+      important: todo.important,
+      dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
+      tags: Array.isArray(todo.tags) ? todo.tags : [],
+      createdAt: new Date(todo.createdAt),
+    }))
+  }, [filteredTodos])
 
   const filters = [
     { key: "all" as Filter, label: "All", count: todos.length },
     { key: "active" as Filter, label: "Active", count: todos.filter((t) => !t.completed).length },
     { key: "completed" as Filter, label: "Completed", count: todos.filter((t) => t.completed).length },
   ]
+
+  // Keep URL param in sync with sidebar filter selection, and trigger query refetch via key
+  useEffect(() => {
+    if (filter === "active") setCompletedParam(false)
+    else if (filter === "completed") setCompletedParam(true)
+    else setCompletedParam(null)
+  }, [filter, setCompletedParam])
 
   return (
     <div className="min-h-screen premium-bg texture-overlay text-foreground">
@@ -157,8 +195,8 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="px-4 py-6">
-            <div className="space-y-2">
+          <SidebarContent className="px-4 py-6 flex flex-col h-full">
+            <div className="space-y-2 flex-1">
               <p className="text-sm font-medium text-white/60 px-3 mb-4">Filters</p>
               <SidebarMenu>
                 {filters.map((filterItem) => (
@@ -177,21 +215,35 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
                 ))}
               </SidebarMenu>
             </div>
+            
+            <div className="mt-auto pt-6">
+              <SidebarFooter />
+            </div>
           </SidebarContent>
         </Sidebar>
 
         <SidebarInset>
           <div className="flex-1 flex flex-col">
-            <header className="border-b border-white/10 p-4 bg-black/5">
-              <div className="flex justify-end items-center">
-                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search todos, tags, due dates..." />
+            <header className="border-b border-white/10 p-3 sm:p-4 bg-black/5">
+              <div className="flex items-center gap-2">
+                <div className="md:hidden">
+                  <SidebarTrigger className="text-white/80" />
+                </div>
+                <div className="flex-1 flex justify-end md:justify-end">
+                  <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search todos, tags, due dates..." />
+                </div>
               </div>
             </header>
 
-            <main className="flex-1 p-8 overflow-auto">
-              <div className="max-w-4xl mx-auto space-y-8">
+            <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto">
+              <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8">
                 <AddTodoForm onAdd={addTodo} />
                 <QuickFilters activeFilter={quickFilter} onFilterChange={setQuickFilter} />
+                {list.isLoading && (
+                  <div className="flex justify-center py-8">
+                    <Loader text="Loading todos..." />
+                  </div>
+                )}
                 {deferredSearch && (
                   <div className="text-sm text-white/70 premium-card rounded-lg p-3">
                     Found {filteredTodos.length} todo{filteredTodos.length !== 1 ? "s" : ""} matching &quot;{deferredSearch}&quot;
@@ -200,18 +252,10 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
                 <div className="space-y-3">
                   {/* Virtualized list */}
                   <VirtualizedTodoList
-                    items={filteredTodos}
+                    items={viewTodos}
                     renderItem={(todo) => (
                       <TodoCard
-                        todo={{
-                          id: todo.id,
-                          text: todo.text,
-                          completed: todo.completed,
-                          important: todo.important,
-                          dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
-                          tags: todo.tags,
-                          createdAt: new Date(todo.createdAt),
-                        }}
+                        todo={todo}
                         onToggle={toggleTodo}
                         onDelete={deleteTodo}
                         onEdit={openEditModal}
@@ -246,13 +290,13 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
       </SidebarProvider>
 
       <EditTodoModal
-        todo={editing as any}
+        todo={editing}
         isOpen={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false)
           setEditing(null)
         }}
-        onSave={saveEditedTodo as any}
+        onSave={saveEditedTodo}
       />
     </div>
   )
@@ -265,34 +309,34 @@ function VirtualizedTodoList<T extends { id: string }>({
   items: T[]
   renderItem: (item: T) => React.ReactNode
 }) {
-  const parentRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) {
-      // noop: just a stable ref
-    }
-  }, [])
+  const parentRef = useRef<HTMLDivElement | null>(null)
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
-    getScrollElement: () => document.querySelector('#todo-scroll-parent') as HTMLElement,
-    estimateSize: () => 88,
-    overscan: 6,
+    getScrollElement: () => parentRef.current as HTMLElement,
+    estimateSize: () => 100, // base guess (actual height measured below)
+    measureElement: (el) => el?.getBoundingClientRect().height || 100,
+    overscan: 8,
   })
 
   return (
-    <div id="todo-scroll-parent" style={{ height: "60vh", overflow: "auto" }}>
+    <div id="todo-scroll-parent" ref={parentRef} style={{ height: "60vh", overflow: "auto" }}>
       <div style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}>
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
           const todo = items[virtualRow.index]
           return (
             <div
-              key={todo.id}
+              key={virtualRow.key}
               data-index={virtualRow.index}
+              ref={rowVirtualizer.measureElement}
               style={{
                 position: "absolute",
                 top: 0,
                 left: 0,
                 width: "100%",
                 transform: `translateY(${virtualRow.start}px)`,
+                paddingTop: 8,
+                paddingBottom: 8,
               }}
             >
               {renderItem(todo)}

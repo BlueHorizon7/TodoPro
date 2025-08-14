@@ -15,7 +15,7 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             retry: 1,
             refetchOnReconnect: false,
             refetchOnMount: false,
-            placeholderData: (prev) => prev,
+            placeholderData: (prev: unknown) => prev,
           },
         },
       }),

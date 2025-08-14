@@ -3,6 +3,7 @@ import { Manrope } from 'next/font/google';
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ReactQueryProvider } from "@/components/providers/react-query-provider";
+import { NuqsProvider } from "@/components/providers/nuqs-adapter";
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -23,14 +24,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${manrope.variable}`}>
         <ReactQueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <NuqsProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </NuqsProvider>
         </ReactQueryProvider>
       </body>
     </html>

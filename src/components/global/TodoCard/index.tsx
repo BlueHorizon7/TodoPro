@@ -1,4 +1,5 @@
 "use client"
+import { memo, useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -7,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Edit2, Trash2, Calendar, Star, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState, useRef, useEffect } from "react"
 
 export interface Todo {
   id: string
@@ -29,13 +29,12 @@ interface TodoCardProps {
   isDragging?: boolean
 }
 
-export function TodoCard({ todo, onToggle, onDelete, onEdit, onToggleImportant, onRename, isDragging = false }: TodoCardProps) {
+function TodoCardComponent({ todo, onToggle, onDelete, onEdit, onToggleImportant, onRename, isDragging = false }: TodoCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const isOverdue = todo.dueDate && todo.dueDate < new Date() && !todo.completed
-  const isDueToday = todo.dueDate && todo.dueDate.toDateString() === new Date().toDateString()
 
   const formatDueDate = (date: Date) => {
     const today = new Date()
@@ -96,14 +95,15 @@ export function TodoCard({ todo, onToggle, onDelete, onEdit, onToggleImportant, 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       className={cn("group", isDragging && "rotate-2 scale-105 z-50")}
-    >
+      >
       <Card
         className={cn(
+          // base glass look
           "bg-white/5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200",
-          "hover:bg-white/10 hover:border-white/20 hover:shadow-xl",
+          // hover glass enhancement (no movement)
+          "hover:bg-white/15 hover:backdrop-blur-xl hover:border-white/30 hover:shadow-2xl hover:ring-1 hover:ring-white/20",
           todo.completed && "opacity-60",
           isOverdue && "border-red-400/30 bg-red-400/5",
           isDragging && "shadow-2xl",
@@ -204,7 +204,7 @@ export function TodoCard({ todo, onToggle, onDelete, onEdit, onToggleImportant, 
             </div>
 
             {/* Tags section */}
-            {todo.tags.length > 0 && (
+            {todo.tags && todo.tags.length > 0 && (
               <div className="pt-2 border-t border-white/10">
                 <div className="flex items-center gap-1 flex-wrap">
                   {todo.tags.map((tag) => (
@@ -219,9 +219,35 @@ export function TodoCard({ todo, onToggle, onDelete, onEdit, onToggleImportant, 
                 </div>
               </div>
             )}
+
           </div>
         </CardContent>
       </Card>
     </motion.div>
   )
 }
+
+function areTodosEqual(a: Todo, b: Todo): boolean {
+  if (a.id !== b.id) return false
+  if (a.text !== b.text) return false
+  if (a.completed !== b.completed) return false
+  if (a.important !== b.important) return false
+  const aDue = a.dueDate ? a.dueDate.getTime() : 0
+  const bDue = b.dueDate ? b.dueDate.getTime() : 0
+  if (aDue !== bDue) return false
+  if (a.tags.length !== b.tags.length) return false
+  for (let i = 0; i < a.tags.length; i++) {
+    if (a.tags[i] !== b.tags[i]) return false
+  }
+  // Ignore createdAt to prevent unnecessary re-renders; it doesn't affect rendering
+  return true
+}
+
+function propsAreEqual(prev: TodoCardProps, next: TodoCardProps): boolean {
+  if (prev.isDragging !== next.isDragging) return false
+  if (!areTodosEqual(prev.todo, next.todo)) return false
+  // Ignore function prop identity changes to reduce re-renders
+  return true
+}
+
+export const TodoCard = memo(TodoCardComponent, propsAreEqual)

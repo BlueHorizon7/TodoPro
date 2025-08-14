@@ -19,7 +19,9 @@ export const createTodoSchema = z.object({
   dueDate: z
     .string()
     .datetime()
-    .refine((v) => isNotPast(v), { message: "Due date cannot be in the past" }),
+    .refine((v) => isNotPast(v), { message: "Due date cannot be in the past" })
+    .optional()
+    .nullable(),
   tags: z.array(tagNameSchema).optional().default([]),
   description: z.string().trim().optional(),
 })

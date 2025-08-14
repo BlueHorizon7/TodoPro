@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { memo, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,12 +13,12 @@ interface AddTodoFormProps {
   onAdd: (todo: {
     text: string
     important: boolean
-    dueDate: Date
+    dueDate?: Date
     tags: string[]
   }) => void
 }
 
-export function AddTodoForm({ onAdd }: AddTodoFormProps) {
+function AddTodoFormComponent({ onAdd }: AddTodoFormProps) {
   const [text, setText] = useState("")
   const [important, setImportant] = useState(false)
   const [tags, setTags] = useState<string[]>([])
@@ -26,12 +26,18 @@ export function AddTodoForm({ onAdd }: AddTodoFormProps) {
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined)
 
   const handleSubmit = () => {
-    if (text.trim() && dueDate) {
+    if (text.trim()) {
+      const pendingTag = tagInput.trim()
+      const allTags = Array.from(new Set([...
+        tags,
+        ...(pendingTag ? [pendingTag] : []),
+      ]))
+
       onAdd({
         text: text.trim(),
         important,
-        dueDate,
-        tags,
+        dueDate: dueDate || undefined, // Make due date truly optional
+        tags: allTags,
       })
       setText("")
       setImportant(false)
@@ -57,7 +63,7 @@ export function AddTodoForm({ onAdd }: AddTodoFormProps) {
       <Card className="premium-card">
         <CardContent className="p-6 space-y-4">
           {/* Main input */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-col sm:flex-row">
             <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -89,7 +95,7 @@ export function AddTodoForm({ onAdd }: AddTodoFormProps) {
 
             <DatePicker date={dueDate} onChange={setDueDate} placeholder="Select due date" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Tag className="w-4 h-4 text-white/60" />
               <Input
                 value={tagInput}
@@ -101,7 +107,7 @@ export function AddTodoForm({ onAdd }: AddTodoFormProps) {
                   }
                 }}
                 placeholder="Add tag..."
-                className="w-24 h-8 text-xs bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                className="w-full sm:w-24 h-8 text-xs bg-white/5 border-white/20 text-white placeholder:text-white/50"
               />
             </div>
           </div>
@@ -126,3 +132,5 @@ export function AddTodoForm({ onAdd }: AddTodoFormProps) {
     </motion.div>
   )
 }
+
+export const AddTodoForm = memo(AddTodoFormComponent)

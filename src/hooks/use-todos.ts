@@ -13,12 +13,14 @@ export type UiTodo = {
 
 const TODOS_KEY = ["todos"] as const
 
-export function useTodos(params?: { q?: string; completed?: boolean; important?: boolean }) {
+export function useTodos(params?: { q?: string; completed?: boolean | null; important?: boolean | null }) {
   const queryClient = useQueryClient()
   const search = new URLSearchParams()
   if (params?.q) search.set("q", params.q)
-  if (params?.completed !== undefined) search.set("completed", String(params.completed))
-  if (params?.important !== undefined) search.set("important", String(params.important))
+  if (params?.completed !== undefined && params?.completed !== null) search.set("completed", String(params.completed))
+  if (params?.important !== undefined && params?.important !== null) search.set("important", String(params.important))
+  
+  // Avoid noisy logs in production for smoother performance
 
   const queryKey = useMemo(() => [
     ...TODOS_KEY,
@@ -39,18 +41,26 @@ export function useTodos(params?: { q?: string; completed?: boolean; important?:
 
   const create = useMutation({
     mutationFn: async (input: { text: string; important: boolean; dueDate?: Date; tags: string[] }) => {
+      const payload = {
+        text: input.text,
+        important: input.important,
+        dueDate: input.dueDate ? input.dueDate.toISOString() : null,
+        tags: input.tags,
+      }
+      
       const res = await fetch("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: input.text,
-          important: input.important,
-          dueDate: input.dueDate ? input.dueDate.toISOString() : undefined,
-          tags: input.tags,
-        }),
+        body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error("Failed to create todo")
-      return (await res.json()).data as UiTodo
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(`Failed to create todo: ${errorData.error || res.statusText}`)
+      }
+      
+      const result = await res.json()
+      return result.data as UiTodo
     },
     onSuccess: (newTodo) => {
       queryClient.setQueryData<UiTodo[]>(queryKey, (old) => (old ? [newTodo, ...old] : [newTodo]))

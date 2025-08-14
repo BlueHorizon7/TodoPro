@@ -31,6 +31,8 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams
     const q = searchParams.get("q")?.trim() ?? undefined
+    const completedParam = searchParams.get("completed")
+    const importantParam = searchParams.get("important")
 
     const where: Prisma.TodoWhereInput = { archivedAt: null }
 
@@ -83,6 +85,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Also honor explicit query params when provided (outside of q)
+    if (completedParam !== null) {
+      if (completedParam === "true") where.completed = true
+      else if (completedParam === "false") where.completed = false
+    }
+    if (importantParam !== null) {
+      if (importantParam === "true") where.important = true
+      else if (importantParam === "false") where.important = false
+    }
+
     const todos = await prisma.todo.findMany({
       where,
       include: { tags: true },
@@ -109,7 +121,7 @@ export async function POST(req: NextRequest) {
         title: parsed.text,
         description: parsed.description ?? null,
         important: parsed.important ?? false,
-        dueDate: parsed.dueDate ? new Date(parsed.dueDate) : null,
+        dueDate: parsed.dueDate ? new Date(parsed.dueDate) : undefined,
         tags: parsed.tags && parsed.tags.length > 0 ? {
           connectOrCreate: parsed.tags.map((name) => ({
             where: { name },

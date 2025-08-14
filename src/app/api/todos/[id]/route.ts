@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const tagOps = parsed.tags
       ? {
-          set: parsed.tags.map((name) => ({ name })),
+          set: [], // Clear existing tags first
           connectOrCreate: parsed.tags.map((name) => ({
             where: { name },
             create: { name },

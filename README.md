@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📝 TodoPro — Professional Task Manager
 
-## Getting Started
+Production-ready, full‑stack task manager built with Next.js 15 (App Router), Prisma, and Neon/PostgreSQL. Designed for speed, elegance, and productivity — with tag‑based organization, smart filters, due date tracking, and a sleek dark UI.
 
-First, run the development server:
+## ✨ Features
+
+- Add, edit, complete, delete todos
+- Tag-based organization and inline tag entry
+- Priority flags (important) and due dates
+- Smart quick filters: Today, Due Soon, Important
+- URL-synced search and filters using nuqs
+- Advanced search syntax: `@tag:work`, `/date:today`, `@important:true`, `@completed:false`
+- Virtualized list rendering for large datasets
+- Optimistic UX via React Query mutations
+- Responsive design; mobile off‑canvas sidebar
+- Modern UI with shadcn/ui, Tailwind v4, glass/gradient polish
+
+## 🧰 Tech Stack
+
+- Framework: Next.js 15 (App Router)
+- Styling: Tailwind CSS v4, shadcn/ui
+- Animations: Framer Motion, GSAP
+- Data: Prisma ORM + Neon/PostgreSQL
+- Client State: Zustand
+- Server/Client Fetching: TanStack Query (React Query)
+- Utilities: Zod, nuqs, lucide-react
+
+## 📦 Monorepo/Project Structure
+
+```
+src/
+  app/                 # App Router routes, layout, API
+  components/          # UI and global components
+  hooks/               # Reusable hooks (e.g., use-todos)
+  lib/                 # Server utilities (prisma, parsing, errors)
+  store/               # Zustand UI store
+prisma/                # Prisma schema and migrations
+public/                # Static assets
+```
+
+## 🚀 Getting Started
+
+1) Install dependencies
+
+```bash
+npm ci
+```
+
+2) Create environment file
+
+```bash
+cp .env.example .env
+```
+
+3) Set up the database
+
+```bash
+npx prisma migrate deploy
+```
+
+4) Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔐 Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See `.env.example` for all variables. Required:
 
-## Learn More
+- DATABASE_URL: PostgreSQL connection string (e.g., Neon)
+- NEXT_PUBLIC_SITE_URL: Your production URL
 
-To learn more about Next.js, take a look at the following resources:
+## 🧪 Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev        # Start dev server
+npm run build      # Build for production
+npm run start      # Start production server
+npm run lint       # Lint
+npm run type-check # TypeScript type checking
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📤 Deployment
 
-## Deploy on Vercel
+- Recommended: Deploy on Vercel
+- Ensure `DATABASE_URL` is configured in project env
+- Run `prisma migrate deploy` during build or via a CI step
+- See `docs/DEPLOYMENT.md` for details
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧭 Architecture Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- API backed by Next.js Route Handlers (`src/app/api/todos`)
+- Strict schema validation on input (Zod)
+- Search query parsed server-side for robust filtering
+- URL-synced filters/search via nuqs; server honors `q`, `completed`, `important`
+
+## 🤝 Contributing
+
+Please read `CONTRIBUTING.md` and open an issue/PR. Feature and bug templates are provided.
+
+## 🛡️ Security
+
+See `SECURITY.md` for reporting guidelines.
+
+## 📜 License
+
+MIT — see `LICENSE`.
+
+---
+
+Built with ❤️ by BlueHorizon7. Repository: https://github.com/BlueHorizon7/TodoPro
+
+
