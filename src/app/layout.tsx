@@ -14,6 +14,11 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Todo Pro",
   description: "Todo Pro is a todo list app that helps you manage your tasks and stay organized.",
+  icons: {
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
 };
 
 export default function RootLayout({

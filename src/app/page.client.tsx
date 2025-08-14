@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useDeferredValue, useCallback, useRef } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { Check } from "lucide-react"
+import Image from "next/image"
 import {
   Sidebar,
   SidebarContent,
@@ -187,7 +187,7 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
           <SidebarHeader className="p-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-white/20 to-white/10 rounded-xl flex items-center justify-center shadow-lg border border-white/10">
-                <Check className="w-4 h-4 text-white" />
+                <Image src="/logo.svg" alt="TodoPro Logo" width={20} height={20} />
               </div>
               <div>
                 <h1 className="text-xl font-bold gradient-text">TodoPro</h1>
@@ -245,13 +245,20 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
                   appearance={{ 
                     elements: { 
                       userButtonAvatarBox: "w-8 h-8",
-                      userButtonTrigger: "hover:bg-white/10 transition-colors duration-200"
+                      userButtonTrigger: "hover:bg-white/10 transition-colors duration-200",
+                      userButtonPopoverCard: "bg-black/90 border border-white/20",
+                      userButtonPopoverActionButton: "text-white hover:bg-white/10",
+                      userButtonPopoverActionButtonText: "text-white",
+                      userButtonPopoverFooter: "border-t border-white/20",
+                      userButtonPopoverFooterAction: "text-white hover:bg-white/10"
                     },
                     variables: {
                       colorPrimary: "rgb(255 255 255 / 0.2)",
                       colorBackground: "rgb(0 0 0 / 0.8)",
                       colorText: "rgb(255 255 255 / 0.9)",
-                      colorTextSecondary: "rgb(255 255 255 / 0.7)"
+                      colorTextSecondary: "rgb(255 255 255 / 0.7)",
+                      colorNeutral: "rgb(255 255 255 / 0.9)",
+                      colorNeutralForeground: "rgb(0 0 0 / 0.9)"
                     }
                   }} 
                 />
@@ -267,7 +274,7 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
                 <SignedOut>
                   <div className="premium-card rounded-lg p-6 text-center border border-white/10 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm">
                     <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
-                      <Check className="w-8 h-8 text-white/60" />
+                      <Image src="/logo.svg" alt="TodoPro Logo" width={32} height={32} />
                     </div>
                     <h3 className="text-lg font-semibold text-white/90 mb-2">Welcome to TodoPro</h3>
                     <p className="text-white/70 mb-4">Sign in to create and manage your personal todos.</p>
@@ -308,7 +315,7 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
                   {filteredTodos.length === 0 && (
                     <div className="text-center py-16">
                       <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
-                        <Check className="w-10 h-10 text-white/50" />
+                        <Image src="/logo.svg" alt="TodoPro Logo" width={40} height={40} />
                       </div>
                       <h3 className="text-xl font-semibold text-white/90 mb-2">{deferredSearch ? "No matching todos" : "No todos found"}</h3>
                       <p className="text-white/60 max-w-md mx-auto">
