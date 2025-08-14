@@ -258,7 +258,7 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
                       colorText: "rgb(255 255 255 / 0.9)",
                       colorTextSecondary: "rgb(255 255 255 / 0.7)",
                       colorNeutral: "rgb(255 255 255 / 0.9)",
-                      colorNeutralForeground: "rgb(0 0 0 / 0.9)"
+                      colorInputForeground: "rgb(0 0 0 / 0.9)"
                     }
                   }} 
                 />
