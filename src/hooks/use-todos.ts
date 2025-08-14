@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuth } from "@clerk/nextjs"
 
 export type UiTodo = {
   id: string
@@ -15,6 +16,7 @@ const TODOS_KEY = ["todos"] as const
 
 export function useTodos(params?: { q?: string; completed?: boolean | null; important?: boolean | null }) {
   const queryClient = useQueryClient()
+  const { isSignedIn } = useAuth()
   const search = new URLSearchParams()
   if (params?.q) search.set("q", params.q)
   if (params?.completed !== undefined && params?.completed !== null) search.set("completed", String(params.completed))
@@ -37,10 +39,12 @@ export function useTodos(params?: { q?: string; completed?: boolean | null; impo
       const data = (await res.json()).data as UiTodo[]
       return data
     },
+    enabled: isSignedIn,
   })
 
   const create = useMutation({
     mutationFn: async (input: { text: string; important: boolean; dueDate?: Date; tags: string[] }) => {
+      if (!isSignedIn) throw new Error("You must be signed in to create todos")
       const payload = {
         text: input.text,
         important: input.important,
@@ -77,6 +81,7 @@ export function useTodos(params?: { q?: string; completed?: boolean | null; impo
 
   const update = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: UpdatePayload }) => {
+      if (!isSignedIn) throw new Error("You must be signed in to update todos")
       const res = await fetch(`/api/todos/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -98,6 +103,7 @@ export function useTodos(params?: { q?: string; completed?: boolean | null; impo
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      if (!isSignedIn) throw new Error("You must be signed in to delete todos")
       const res = await fetch(`/api/todos/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error("Failed to delete todo")
       return (await res.json()).data as UiTodo

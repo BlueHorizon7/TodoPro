@@ -1,5 +1,6 @@
 import type { Prisma, Tag, Todo } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 
 export type UiTodo = {
   id: string
@@ -24,7 +25,9 @@ function toUiTodo(todo: Todo & { tags: Tag[] }): UiTodo {
 }
 
 export async function getTodosServer(params?: { q?: string; completed?: boolean; important?: boolean }) {
-  const where: Prisma.TodoWhereInput = { archivedAt: null }
+  const { userId } = auth()
+  if (!userId) return []
+  const where: Prisma.TodoWhereInput = { archivedAt: null, userId }
   if (params?.q) {
     const q = params.q.trim()
     if (q) {

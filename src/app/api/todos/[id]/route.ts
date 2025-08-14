@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { AppError, toErrorResponse } from "@/lib/errors"
 import { updateTodoSchema } from "@/lib/validators/todo"
 import type { Tag, Todo } from "@prisma/client"
+import { auth } from "@clerk/nextjs/server"
 
 type TodoWithTags = Todo & { tags: Tag[] }
 
@@ -20,8 +21,10 @@ function toUiTodo(todo: TodoWithTags) {
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { userId } = auth()
+    if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
-    const todo = await prisma.todo.findUnique({ where: { id }, include: { tags: true } })
+    const todo = await prisma.todo.findFirst({ where: { id, userId }, include: { tags: true } })
     if (!todo) throw new AppError("Todo not found", 404)
     return Response.json({ data: toUiTodo(todo) })
   } catch (error) {
@@ -32,19 +35,21 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { userId } = auth()
+    if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
     const json = await req.json()
     const parsed = updateTodoSchema.parse(json)
 
-    const existing = await prisma.todo.findUnique({ where: { id }, include: { tags: true } })
+    const existing = await prisma.todo.findFirst({ where: { id, userId }, include: { tags: true } })
     if (!existing) throw new AppError("Todo not found", 404)
 
     const tagOps = parsed.tags
       ? {
           set: [], // Clear existing tags first
           connectOrCreate: parsed.tags.map((name) => ({
-            where: { name },
-            create: { name },
+            where: { userId_name: { userId, name } },
+            create: { name, userId },
           })),
         }
       : undefined
@@ -83,8 +88,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { userId } = auth()
+    if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
-    // Soft delete
+    // Soft delete, scoped to owner
+    const existing = await prisma.todo.findFirst({ where: { id, userId } })
+    if (!existing) throw new AppError("Todo not found", 404)
     const updated = await prisma.todo.update({
       where: { id },
       data: { archivedAt: new Date() },

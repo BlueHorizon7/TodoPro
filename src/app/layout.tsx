@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ReactQueryProvider } from "@/components/providers/react-query-provider";
 import { NuqsProvider } from "@/components/providers/nuqs-adapter";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -22,20 +23,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${manrope.variable}`}>
-        <ReactQueryProvider>
-          <NuqsProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-            </ThemeProvider>
-          </NuqsProvider>
-        </ReactQueryProvider>
-      </body>
+      <ClerkProvider>
+        <body className={`${manrope.variable}`}>
+          <ReactQueryProvider>
+            <NuqsProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+              </ThemeProvider>
+            </NuqsProvider>
+          </ReactQueryProvider>
+        </body>
+      </ClerkProvider>
     </html>
   );
 }

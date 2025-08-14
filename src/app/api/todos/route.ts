@@ -4,6 +4,7 @@ import { toErrorResponse } from "@/lib/errors"
 import { createTodoSchema } from "@/lib/validators/todo"
 import type { Prisma, Tag, Todo } from "@prisma/client"
 import { parseSearchQuery } from "@/lib/search-parser"
+import { auth } from "@clerk/nextjs/server"
 
 export type UiTodo = {
   id: string
@@ -29,12 +30,16 @@ function toUiTodo(todo: (Todo & { tags: Tag[] })) : UiTodo {
 
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = auth()
+    if (!userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
+    }
     const searchParams = req.nextUrl.searchParams
     const q = searchParams.get("q")?.trim() ?? undefined
     const completedParam = searchParams.get("completed")
     const importantParam = searchParams.get("important")
 
-    const where: Prisma.TodoWhereInput = { archivedAt: null }
+    const where: Prisma.TodoWhereInput = { archivedAt: null, userId }
 
     if (q) {
       const searchQuery = parseSearchQuery(q)
@@ -113,6 +118,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = auth()
+    if (!userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
+    }
     const json = await req.json()
     const parsed = createTodoSchema.parse(json)
 
@@ -122,10 +131,11 @@ export async function POST(req: NextRequest) {
         description: parsed.description ?? null,
         important: parsed.important ?? false,
         dueDate: parsed.dueDate ? new Date(parsed.dueDate) : undefined,
+        userId,
         tags: parsed.tags && parsed.tags.length > 0 ? {
           connectOrCreate: parsed.tags.map((name) => ({
-            where: { name },
-            create: { name },
+            where: { userId_name: { userId, name } },
+            create: { name, userId },
           })),
         } : undefined,
       },

@@ -24,6 +24,7 @@ import dynamic from "next/dynamic"
 import { useUiStore, type Filter } from "@/store/ui"
 import { useTodos, UiTodo } from "@/hooks/use-todos"
 import { useQueryState, parseAsString, parseAsBoolean } from "nuqs"
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"
 
 const EditTodoModal = dynamic(() => import("@/components/global/edit-todo-model").then((m) => m.EditTodoModal), {
   ssr: false,
@@ -225,19 +226,58 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
         <SidebarInset>
           <div className="flex-1 flex flex-col">
             <header className="border-b border-white/10 p-3 sm:p-4 bg-black/5">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
                 <div className="md:hidden">
                   <SidebarTrigger className="text-white/80" />
                 </div>
-                <div className="flex-1 flex justify-end md:justify-end">
+              <div className="flex-1 flex justify-end md:justify-end">
                   <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search todos, tags, due dates..." />
                 </div>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-white/20 to-white/10 border border-white/20 hover:from-white/30 hover:to-white/20 transition-all duration-200 shadow-lg hover:shadow-xl backdrop-blur-sm">
+                    Sign in
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <UserButton 
+                  appearance={{ 
+                    elements: { 
+                      userButtonAvatarBox: "w-8 h-8",
+                      userButtonTrigger: "hover:bg-white/10 transition-colors duration-200"
+                    },
+                    variables: {
+                      colorPrimary: "rgb(255 255 255 / 0.2)",
+                      colorBackground: "rgb(0 0 0 / 0.8)",
+                      colorText: "rgb(255 255 255 / 0.9)",
+                      colorTextSecondary: "rgb(255 255 255 / 0.7)"
+                    }
+                  }} 
+                />
+              </SignedIn>
               </div>
             </header>
 
             <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto">
               <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8">
-                <AddTodoForm onAdd={addTodo} />
+                <SignedIn>
+                  <AddTodoForm onAdd={addTodo} />
+                </SignedIn>
+                <SignedOut>
+                  <div className="premium-card rounded-lg p-6 text-center border border-white/10 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm">
+                    <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                      <Check className="w-8 h-8 text-white/60" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white/90 mb-2">Welcome to TodoPro</h3>
+                    <p className="text-white/70 mb-4">Sign in to create and manage your personal todos.</p>
+                    <SignInButton mode="modal">
+                      <button className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-white/20 to-white/10 border border-white/20 hover:from-white/30 hover:to-white/20 transition-all duration-200 shadow-lg hover:shadow-xl backdrop-blur-sm font-medium">
+                        Get Started
+                      </button>
+                    </SignInButton>
+                  </div>
+                </SignedOut>
                 <QuickFilters activeFilter={quickFilter} onFilterChange={setQuickFilter} />
                 {list.isLoading && (
                   <div className="flex justify-center py-8">
