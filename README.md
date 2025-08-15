@@ -288,7 +288,7 @@ Found a bug? Please report it using our [Issue Template](ISSUE_TEMPLATE.md) and 
 
 Security is our top priority. If you discover a security vulnerability, please:
 1. **DO NOT** create a public issue
-2. Email us at [security@todopro.com](mailto:security@todopro.com)
+2. Email us at [security@todopro.com](mailto:sonusharma94p@gmail.com)
 3. We'll respond within 24 hours
 
 ## 📄 License
@@ -305,20 +305,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.todopro.com](https://docs.todopro.com)
 - **Issues**: [GitHub Issues](https://github.com/BlueHorizon7/TodoPro/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/BlueHorizon7/TodoPro/discussions)
-- **Email**: [support@todopro.com](mailto:support@todopro.com)
+- **Email**: [support@todopro.com](mailto:sonusharma94p@gmail.com)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by the TodoPro Team**
+**Built with ❤️ by BlueHorizon7**
 
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/BlueHorizon7/TodoPro)
-[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/TodoPro)
-[![Discord](https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/todopro)
 
 </div>
 
