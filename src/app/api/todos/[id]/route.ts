@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const tagOps = parsed.tags
       ? {
-          set: [], // Clear existing tags first
+          set: [], 
           connectOrCreate: parsed.tags.map((name) => ({
             where: { userId_name: { userId, name } },
             create: { name, userId },
@@ -91,7 +91,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const { userId } = await auth()
     if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
     const { id } = await params
-    // Soft delete, scoped to owner
+  
     const existing = await prisma.todo.findFirst({ where: { id, userId } })
     if (!existing) throw new AppError("Todo not found", 404)
     const updated = await prisma.todo.update({

@@ -36,7 +36,7 @@ function AddTodoFormComponent({ onAdd }: AddTodoFormProps) {
       onAdd({
         text: text.trim(),
         important,
-        dueDate: dueDate || undefined, // Make due date truly optional
+        dueDate: dueDate || undefined, 
         tags: allTags,
       })
       setText("")

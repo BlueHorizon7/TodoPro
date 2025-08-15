@@ -15,13 +15,11 @@ export function parseSearchQuery(query: string): SearchQuery {
     tags: [],
   }
 
-  // Split by spaces but preserve quoted strings
   const parts = query.match(/(?:[^\s"']+|"[^"]*"|'[^']*')/g) || []
 
   for (const part of parts) {
-    const trimmedPart = part.replace(/^["']|["']$/g, "") // Remove quotes
+    const trimmedPart = part.replace(/^["']|["']$/g, "")
 
-    // Check for @tag: syntax
     if (trimmedPart.startsWith("@tag:")) {
       const tag = trimmedPart.slice(5).trim()
       if (tag) {
@@ -30,7 +28,6 @@ export function parseSearchQuery(query: string): SearchQuery {
       continue
     }
 
-    // Check for /date: syntax
     if (trimmedPart.startsWith("/date:")) {
       const dateStr = trimmedPart.slice(6).trim()
       if (dateStr) {
@@ -42,7 +39,6 @@ export function parseSearchQuery(query: string): SearchQuery {
       continue
     }
 
-    // Check for @important: syntax
     if (trimmedPart.startsWith("@important:")) {
       const value = trimmedPart.slice(11).trim().toLowerCase()
       if (value === "true" || value === "yes") {
@@ -53,7 +49,6 @@ export function parseSearchQuery(query: string): SearchQuery {
       continue
     }
 
-    // Check for @completed: syntax
     if (trimmedPart.startsWith("@completed:")) {
       const value = trimmedPart.slice(11).trim().toLowerCase()
       if (value === "true" || value === "yes") {
@@ -64,7 +59,6 @@ export function parseSearchQuery(query: string): SearchQuery {
       continue
     }
 
-    // Regular text search
     if (trimmedPart && !trimmedPart.startsWith("@") && !trimmedPart.startsWith("/")) {
       result.text += (result.text ? " " : "") + trimmedPart
     }
@@ -78,7 +72,6 @@ function parseDateRange(dateStr: string): { start?: Date; end?: Date } | null {
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
 
-  // Handle relative dates
   switch (dateStr.toLowerCase()) {
     case "today":
       return { start: today, end: today }
@@ -104,7 +97,6 @@ function parseDateRange(dateStr: string): { start?: Date; end?: Date } | null {
       return { start: today, end: threeDaysFromNow }
   }
 
-  // Handle date ranges (e.g., "2024-01-01:2024-01-31")
   if (dateStr.includes(":")) {
     const [startStr, endStr] = dateStr.split(":")
     const start = new Date(startStr.trim())
@@ -114,8 +106,7 @@ function parseDateRange(dateStr: string): { start?: Date; end?: Date } | null {
       return { start, end }
     }
   }
-
-  // Handle single date
+  
   const singleDate = new Date(dateStr)
   if (!isNaN(singleDate.getTime())) {
     return { start: singleDate, end: singleDate }

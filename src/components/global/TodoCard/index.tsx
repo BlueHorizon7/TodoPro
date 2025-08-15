@@ -100,9 +100,7 @@ function TodoCardComponent({ todo, onToggle, onDelete, onEdit, onToggleImportant
       >
       <Card
         className={cn(
-          // base glass look
           "bg-white/5 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200",
-          // hover glass enhancement (no movement)
           "hover:bg-white/15 hover:backdrop-blur-xl hover:border-white/30 hover:shadow-2xl hover:ring-1 hover:ring-white/20",
           todo.completed && "opacity-60",
           isOverdue && "border-red-400/30 bg-red-400/5",
@@ -111,7 +109,6 @@ function TodoCardComponent({ todo, onToggle, onDelete, onEdit, onToggleImportant
       >
         <CardContent className="p-4">
           <div className="space-y-3">
-            {/* Header: Checkbox, Title, and Actions */}
             <div className="flex items-start gap-3">
               <Checkbox
                 checked={todo.completed}
@@ -154,7 +151,6 @@ function TodoCardComponent({ todo, onToggle, onDelete, onEdit, onToggleImportant
                 )}
               </div>
 
-              {/* Action buttons */}
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   size="icon"
@@ -178,7 +174,6 @@ function TodoCardComponent({ todo, onToggle, onDelete, onEdit, onToggleImportant
               </div>
             </div>
 
-            {/* Status indicators */}
             <div className="flex items-center gap-2 flex-wrap">
               {todo.important && (
                 <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-yellow-400/20 text-yellow-300 border-yellow-400/30">
@@ -203,7 +198,6 @@ function TodoCardComponent({ todo, onToggle, onDelete, onEdit, onToggleImportant
               )}
             </div>
 
-            {/* Tags section */}
             {todo.tags && todo.tags.length > 0 && (
               <div className="pt-2 border-t border-white/10">
                 <div className="flex items-center gap-1 flex-wrap">
@@ -239,14 +233,12 @@ function areTodosEqual(a: Todo, b: Todo): boolean {
   for (let i = 0; i < a.tags.length; i++) {
     if (a.tags[i] !== b.tags[i]) return false
   }
-  // Ignore createdAt to prevent unnecessary re-renders; it doesn't affect rendering
   return true
 }
 
 function propsAreEqual(prev: TodoCardProps, next: TodoCardProps): boolean {
   if (prev.isDragging !== next.isDragging) return false
   if (!areTodosEqual(prev.todo, next.todo)) return false
-  // Ignore function prop identity changes to reduce re-renders
   return true
 }
 

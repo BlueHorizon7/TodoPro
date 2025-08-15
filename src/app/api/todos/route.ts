@@ -44,7 +44,6 @@ export async function GET(req: NextRequest) {
     if (q) {
       const searchQuery = parseSearchQuery(q)
       
-      // Text search
       if (searchQuery.text) {
         where.OR = [
           { title: { contains: searchQuery.text, mode: "insensitive" } },
@@ -52,7 +51,6 @@ export async function GET(req: NextRequest) {
         ]
       }
 
-      // Tag search
       if (searchQuery.tags.length > 0) {
         where.tags = {
           some: {
@@ -61,7 +59,6 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Date range search
       if (searchQuery.dateRange) {
         if (searchQuery.dateRange.start && searchQuery.dateRange.end) {
           where.dueDate = {
@@ -79,18 +76,15 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Important filter
       if (searchQuery.important !== undefined) {
         where.important = searchQuery.important
       }
 
-      // Completed filter
       if (searchQuery.completed !== undefined) {
         where.completed = searchQuery.completed
       }
     }
 
-    // Also honor explicit query params when provided (outside of q)
     if (completedParam !== null) {
       if (completedParam === "true") where.completed = true
       else if (completedParam === "false") where.completed = false

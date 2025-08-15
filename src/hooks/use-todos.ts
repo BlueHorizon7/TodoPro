@@ -22,7 +22,6 @@ export function useTodos(params?: { q?: string; completed?: boolean | null; impo
   if (params?.completed !== undefined && params?.completed !== null) search.set("completed", String(params.completed))
   if (params?.important !== undefined && params?.important !== null) search.set("important", String(params.important))
   
-  // Avoid noisy logs in production for smoother performance
 
   const queryKey = useMemo(() => [
     ...TODOS_KEY,

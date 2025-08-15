@@ -43,11 +43,9 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
     document.documentElement.classList.add("dark")
   }, [])
 
-  // Convert quick filters to search queries
   const getSearchQuery = () => {
     let searchQuery = deferredSearch || ""
     
-    // Add quick filter search terms
     if (quickFilter === "today") {
       searchQuery = searchQuery ? `${searchQuery} /date:today` : "/date:today"
     } else if (quickFilter === "due-soon") {
@@ -65,7 +63,6 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
     important: undefined,
   })
 
-  // hydrate initial data to avoid blank state
   const todos = (list.data ?? initial) as UiTodo[]
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -136,18 +133,13 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
   }, [todos, update])
 
   const filteredTodos = useMemo(() => {
-    // Server-side search is already handled by the API
-    // Only apply client-side quick filters that aren't handled by the server
     const filtered = todos
     
-    // Apply quick filters that aren't handled by the server
     switch (quickFilter) {
       case "today": {
-        // This is now handled by the server search with /date:today
         break
       }
       case "due-soon": {
-        // This is now handled by the server search with /date:due-soon
         break
       }
     }
@@ -173,7 +165,6 @@ export default function ClientPage({ initial }: { initial: UiTodo[] }) {
     { key: "completed" as Filter, label: "Completed", count: todos.filter((t) => t.completed).length },
   ]
 
-  // Keep URL param in sync with sidebar filter selection, and trigger query refetch via key
   useEffect(() => {
     if (filter === "active") setCompletedParam(false)
     else if (filter === "completed") setCompletedParam(true)
@@ -361,7 +352,7 @@ function VirtualizedTodoList<T extends { id: string }>({
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current as HTMLElement,
-    estimateSize: () => 100, // base guess (actual height measured below)
+    estimateSize: () => 100,
     measureElement: (el) => el?.getBoundingClientRect().height || 100,
     overscan: 8,
   })

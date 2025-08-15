@@ -12,14 +12,12 @@ export function SidebarFooter() {
     const container = containerRef.current
     if (!container) return
 
-    // Subtle entrance animation
     gsap.fromTo(
       container,
       { y: 12, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.6, ease: "power2.out", delay: 0.1 },
     )
 
-    // Floating particles animation
     const particles = container.querySelectorAll<HTMLDivElement>("[data-particle]")
     const particlesArray = Array.from(particles)
     particlesRef.current = particlesArray
